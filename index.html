@@ -1,0 +1,344 @@
+Perfect.
+Now we’ll build the proper Firebase-powered Smoke Tracker Pro architecture.
+
+Step 1 — Delete old data structure
+
+In Firestore:
+
+* delete:
+
+tracker
+
+We’ll create a cleaner system.
+
+⸻
+
+Step 2 — Firestore Rules
+
+Go to:
+
+* Firestore Database
+* Rules
+
+Replace everything with:
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+}
+
+Then:
+
+* Publish
+
+(Temporary open access for development.)
+
+⸻
+
+Step 3 — Replace FULL index.html
+
+Delete old code completely.
+
+Create new:
+
+* index.html
+
+Paste this FULL code:
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smoke Tracker Pro</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+    }
+    body{
+      background:#081223;
+      font-family:Arial;
+      color:white;
+      padding:20px;
+    }
+    .container{
+      max-width:500px;
+      margin:auto;
+    }
+    .glass{
+      background:rgba(255,255,255,0.08);
+      border-radius:20px;
+      padding:20px;
+      margin-bottom:20px;
+      backdrop-filter:blur(12px);
+    }
+    h1{
+      text-align:center;
+      margin-bottom:10px;
+      font-size:38px;
+    }
+    .date{
+      text-align:center;
+      opacity:0.6;
+      margin-bottom:20px;
+    }
+    #count{
+      font-size:85px;
+      text-align:center;
+      margin:20px 0;
+      font-weight:bold;
+      color:#00e5ff;
+    }
+    .buttons{
+      display:flex;
+      gap:10px;
+    }
+    button{
+      flex:1;
+      border:none;
+      padding:15px;
+      border-radius:15px;
+      font-size:18px;
+      color:white;
+      cursor:pointer;
+    }
+    .green{
+      background:#00c853;
+    }
+    .orange{
+      background:#ff9800;
+    }
+    .red{
+      background:#ff1744;
+    }
+    .stats{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
+    }
+    .card{
+      background:rgba(255,255,255,0.05);
+      padding:15px;
+      border-radius:15px;
+      text-align:center;
+    }
+    .card h2{
+      margin-top:10px;
+      font-size:28px;
+    }
+    .timeline{
+      max-height:250px;
+      overflow-y:auto;
+    }
+    .item{
+      display:flex;
+      justify-content:space-between;
+      padding:12px;
+      border-bottom:1px solid rgba(255,255,255,0.08);
+    }
+    canvas{
+      margin-top:20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="glass">
+      <h1>🚬 Smoke Tracker Pro</h1>
+      <div class="date" id="date"></div>
+      <div id="count">0</div>
+      <div class="buttons">
+        <button class="green" onclick="addSmoke(1)">
+          +1
+        </button>
+        <button class="orange" onclick="addSmoke(0.5)">
+          +0.5
+        </button>
+        <button class="red" onclick="resetDay()">
+          Reset
+        </button>
+      </div>
+    </div>
+    <div class="glass">
+      <div class="stats">
+        <div class="card">
+          Today
+          <h2 id="todayStat">0</h2>
+        </div>
+        <div class="card">
+          Weekly Avg
+          <h2 id="weekStat">0</h2>
+        </div>
+        <div class="card">
+          Entries
+          <h2 id="entryStat">0</h2>
+        </div>
+        <div class="card">
+          Monthly
+          <h2 id="monthStat">0</h2>
+        </div>
+      </div>
+    </div>
+    <div class="glass">
+      <h2>📈 Weekly Trend</h2>
+      <canvas id="chart"></canvas>
+    </div>
+    <div class="glass">
+      <h2>⏱ Timeline</h2>
+      <div class="timeline" id="timeline"></div>
+    </div>
+  </div>
+  <script type="module">
+    import { initializeApp }
+    from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+    import {
+      getFirestore,
+      doc,
+      setDoc,
+      getDoc,
+      collection,
+      getDocs
+    }
+    from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_DOMAIN",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_BUCKET",
+      messagingSenderId: "YOUR_MSG_ID",
+      appId: "YOUR_APP_ID"
+    };
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const today =
+      new Date().toISOString().split("T")[0];
+    document.getElementById("date")
+      .innerText = new Date().toDateString();
+    const todayRef =
+      doc(db,"smoke_logs",today);
+    let currentData = {
+      total:0,
+      entries:[]
+    };
+    async function loadToday(){
+      const snap =
+        await getDoc(todayRef);
+      if(snap.exists()){
+        currentData = snap.data();
+      }
+      updateUI();
+      loadChart();
+    }
+    async function saveData(){
+      await setDoc(todayRef,currentData);
+      updateUI();
+      loadChart();
+    }
+    window.addSmoke = async(amount)=>{
+      currentData.total += amount;
+      currentData.entries.unshift({
+        amount:amount,
+        time:new Date().toLocaleTimeString()
+      });
+      await saveData();
+    }
+    window.resetDay = async()=>{
+      if(confirm("Reset today?")){
+        currentData = {
+          total:0,
+          entries:[]
+        };
+        await saveData();
+      }
+    }
+    function updateUI(){
+      document.getElementById("count")
+        .innerText = currentData.total;
+      document.getElementById("todayStat")
+        .innerText = currentData.total;
+      document.getElementById("entryStat")
+        .innerText = currentData.entries.length;
+      const timeline =
+        document.getElementById("timeline");
+      timeline.innerHTML = "";
+      currentData.entries.forEach(entry=>{
+        timeline.innerHTML += `
+          <div class="item">
+            <div>
+              +${entry.amount}
+            </div>
+            <div>
+              ${entry.time}
+            </div>
+          </div>
+        `;
+      });
+    }
+    let chart;
+    async function loadChart(){
+      const query =
+        await getDocs(collection(db,"smoke_logs"));
+      let labels = [];
+      let values = [];
+      let total = 0;
+      query.forEach(doc=>{
+        labels.push(doc.id);
+        values.push(doc.data().total);
+        total += doc.data().total;
+      });
+      const avg =
+        (total / values.length || 0).toFixed(1);
+      document.getElementById("weekStat")
+        .innerText = avg;
+      document.getElementById("monthStat")
+        .innerText = total;
+      if(chart){
+        chart.destroy();
+      }
+      chart = new Chart(
+        document.getElementById("chart"),
+        {
+          type:"line",
+          data:{
+            labels:labels,
+            datasets:[{
+              label:"Cigarettes",
+              data:values,
+              tension:0.4
+            }]
+          },
+          options:{
+            plugins:{
+              legend:{
+                labels:{
+                  color:"white"
+                }
+              }
+            },
+            scales:{
+              x:{
+                ticks:{
+                  color:"white"
+                }
+              },
+              y:{
+                ticks:{
+                  color:"white"
+                }
+              }
+            }
+          }
+        }
+      );
+    }
+    loadToday();
+  </script>
+</body>
+</html>
