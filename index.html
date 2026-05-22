@@ -2,9 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Smoke Tracker</title>
-
   <style>
     body {
       margin: 0;
@@ -17,135 +16,106 @@
       height: 100vh;
       color: white;
     }
-
     .card {
       background: #162447;
       padding: 25px;
       border-radius: 20px;
-      width: 280px;
+      width: 300px;
       text-align: center;
-      box-shadow: 0 0 15px rgba(0,0,0,0.3);
+      box-shadow: 0 0 20px rgba(0,0,0,0.4);
     }
-
     h1 {
+      margin-bottom: 5px;
       font-size: 32px;
-      margin-bottom: 15px;
     }
-
+    .date {
+      font-size: 14px;
+      opacity: 0.7;
+      margin-bottom: 20px;
+    }
     #count {
-      font-size: 70px;
+      font-size: 75px;
       margin: 20px 0;
       color: #3db2ff;
+      font-weight: bold;
     }
-
     button {
       width: 100%;
       padding: 15px;
       margin-top: 12px;
       border: none;
-      border-radius: 10px;
+      border-radius: 12px;
       font-size: 18px;
       color: white;
       cursor: pointer;
+      transition: 0.2s;
     }
-
+    button:hover {
+      transform: scale(1.02);
+    }
     .green {
       background: #00c853;
     }
-
     .orange {
       background: #ff9800;
     }
-
     .red {
       background: #ff1744;
     }
+    .footer {
+      margin-top: 18px;
+      font-size: 13px;
+      opacity: 0.6;
+    }
   </style>
 </head>
-
 <body>
-
   <div class="card">
     <h1>🚬 Smoke Tracker</h1>
-
+    <div class="date" id="date"></div>
     <div id="count">0</div>
-
-    <button class="green" onclick="addOne()">+1 Cigarette</button>
-
-    <button class="orange" onclick="addHalf()">+0.5 Cigarette</button>
-
-    <button class="red" onclick="resetCount()">Reset Day</button>
+    <button class="green" onclick="addOne()">
+      +1 Cigarette
+    </button>
+    <button class="orange" onclick="addHalf()">
+      +0.5 Cigarette
+    </button>
+    <button class="red" onclick="resetCount()">
+      Reset Day
+    </button>
+    <div class="footer">
+      Data saved locally on this device
+    </div>
   </div>
-
-  <script type="module">
-
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
-
-    import {
-      getFirestore,
-      doc,
-      getDoc,
-      setDoc
-    } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyDHd4g6boJJE0pSqAAqBLkWZ_-ZuNgXDho",
-      authDomain: "smoke-tracker-8c8f9.firebaseapp.com",
-      projectId: "smoke-tracker-8c8f9",
-      storageBucket: "smoke-tracker-8c8f9.firebasestorage.app",
-      messagingSenderId: "640460140066",
-      appId: "1:640460140066:web:4e54553f7dec30a0ba647b",
-      measurementId: "G-RVS8Y7S6FY"
-    };
-
-    const app = initializeApp(firebaseConfig);
-
-    const db = getFirestore(app);
-
-    const countRef = doc(db, "tracker", "daily");
-
-    let count = 0;
-
-    async function loadCount() {
-      const snap = await getDoc(countRef);
-
-      if (snap.exists()) {
-        count = snap.data().count || 0;
-      }
-
-      updateUI();
-    }
-
-    async function saveCount() {
-      await setDoc(countRef, {
-        count: count
-      });
-
-      updateUI();
-    }
-
+  <script>
+    const today = new Date();
+    document.getElementById("date").innerText =
+      today.toDateString();
+    let count = localStorage.getItem("smokeCount")
+      ? parseFloat(localStorage.getItem("smokeCount"))
+      : 0;
     function updateUI() {
       document.getElementById("count").innerText = count;
     }
-
-    window.addOne = async function () {
+    function saveCount() {
+      localStorage.setItem("smokeCount", count);
+      updateUI();
+    }
+    window.addOne = function () {
       count += 1;
-      await saveCount();
+      saveCount();
     }
-
-    window.addHalf = async function () {
+    window.addHalf = function () {
       count += 0.5;
-      await saveCount();
+      saveCount();
     }
-
-    window.resetCount = async function () {
-      count = 0;
-      await saveCount();
+    window.resetCount = function () {
+      if (confirm("Reset today's count?")) {
+        count = 0;
+        saveCount();
+      }
     }
-
-    loadCount();
-
+    updateUI();
   </script>
-
 </body>
 </html>
