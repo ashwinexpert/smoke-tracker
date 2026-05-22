@@ -1,1 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Smoke Tracker</title>
 
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: #07153a;
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      color: white;
+    }
+
+    .card {
+      background: #162447;
+      padding: 25px;
+      border-radius: 20px;
+      width: 280px;
+      text-align: center;
+      box-shadow: 0 0 15px rgba(0,0,0,0.3);
+    }
+
+    h1 {
+      font-size: 32px;
+      margin-bottom: 15px;
+    }
+
+    #count {
+      font-size: 70px;
+      margin: 20px 0;
+      color: #3db2ff;
+    }
+
+    button {
+      width: 100%;
+      padding: 15px;
+      margin-top: 12px;
+      border: none;
+      border-radius: 10px;
+      font-size: 18px;
+      color: white;
+      cursor: pointer;
+    }
+
+    .green {
+      background: #00c853;
+    }
+
+    .orange {
+      background: #ff9800;
+    }
+
+    .red {
+      background: #ff1744;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="card">
+    <h1>🚬 Smoke Tracker</h1>
+
+    <div id="count">0</div>
+
+    <button class="green" onclick="addOne()">+1 Cigarette</button>
+
+    <button class="orange" onclick="addHalf()">+0.5 Cigarette</button>
+
+    <button class="red" onclick="resetCount()">Reset Day</button>
+  </div>
+
+  <script type="module">
+
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+
+    import {
+      getFirestore,
+      doc,
+      getDoc,
+      setDoc
+    } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDHd4g6boJJE0pSqAAqBLkWZ_-ZuNgXDho",
+      authDomain: "smoke-tracker-8c8f9.firebaseapp.com",
+      projectId: "smoke-tracker-8c8f9",
+      storageBucket: "smoke-tracker-8c8f9.firebasestorage.app",
+      messagingSenderId: "640460140066",
+      appId: "1:640460140066:web:4e54553f7dec30a0ba647b",
+      measurementId: "G-RVS8Y7S6FY"
+    };
+
+    const app = initializeApp(firebaseConfig);
+
+    const db = getFirestore(app);
+
+    const countRef = doc(db, "tracker", "daily");
+
+    let count = 0;
+
+    async function loadCount() {
+      const snap = await getDoc(countRef);
+
+      if (snap.exists()) {
+        count = snap.data().count || 0;
+      }
+
+      updateUI();
+    }
+
+    async function saveCount() {
+      await setDoc(countRef, {
+        count: count
+      });
+
+      updateUI();
+    }
+
+    function updateUI() {
+      document.getElementById("count").innerText = count;
+    }
+
+    window.addOne = async function () {
+      count += 1;
+      await saveCount();
+    }
+
+    window.addHalf = async function () {
+      count += 0.5;
+      await saveCount();
+    }
+
+    window.resetCount = async function () {
+      count = 0;
+      await saveCount();
+    }
+
+    loadCount();
+
+  </script>
+
+</body>
+</html>
