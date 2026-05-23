@@ -268,6 +268,7 @@
             display: flex;
             align-items: center;
             gap: 12px;
+            flex-wrap: wrap;
         }
         .timeline-dot {
             width: 10px;
@@ -339,9 +340,9 @@
         <div class="glass-card counter-section">
             <div id="count" class="count-number safe">0</div>
             <div class="btn-group">
-                <button class="btn btn-primary" onclick="showPriceModal(1)">+1 🚬</button>
-                <button class="btn btn-half" onclick="showPriceModal(0.5)">+0.5 🔥</button>
-                <button class="btn btn-custom" onclick="showPriceModal(null, true)">💸 Custom Price</button>
+                <button class="btn btn-primary" onclick="addQuickSmoke(1)">+1 🚬 (₹10)</button>
+                <button class="btn btn-half" onclick="addQuickSmoke(0.5)">+0.5 🔥 (₹5)</button>
+                <button class="btn btn-custom" onclick="showCustomPriceModal()">💸 Custom Price</button>
                 <button class="btn btn-reset" onclick="resetToday()">Reset ↻</button>
             </div>
         </div>
@@ -384,17 +385,24 @@
             <input type="file" id="fileInput" hidden>
         </div>
 
-        <div class="footer">Smoke Tracker Pro • Tap + to set custom price</div>
+        <div class="footer">Smoke Tracker Pro • Tap + for ₹10 cig • Custom for expensive ones</div>
     </div>
 
-    <!-- Price Modal -->
+    <!-- Price Modal (Only for custom prices) -->
     <div id="priceModal" class="modal">
         <div class="modal-content">
-            <h3 id="modalTitle">💰 Select Price</h3>
-            <div class="price-options" id="priceOptions"></div>
+            <h3>💸 Select Cigarette Price</h3>
+            <div class="price-options">
+                <button class="price-btn" onclick="addCustomPrice(1, 15)">₹15</button>
+                <button class="price-btn" onclick="addCustomPrice(1, 20)">₹20</button>
+                <button class="price-btn" onclick="addCustomPrice(1, 25)">₹25</button>
+                <button class="price-btn" onclick="addCustomPrice(1, 30)">₹30</button>
+                <button class="price-btn" onclick="addCustomPrice(1, 50)">₹50</button>
+                <button class="price-btn" onclick="addCustomPrice(1, 100)">₹100</button>
+            </div>
             <div class="custom-price-input">
-                <input type="number" id="customPrice" placeholder="Other amount" step="1" min="1">
-                <button class="btn btn-primary" style="padding: 12px 20px;" onclick="addWithCustomPrice()">Add</button>
+                <input type="number" id="customPrice" placeholder="Custom amount (₹)" step="1" min="1">
+                <button class="btn btn-primary" style="padding: 12px 20px;" onclick="addCustomPriceFromInput()">Add</button>
             </div>
             <button class="btn modal-close" onclick="closeModal()">Cancel</button>
         </div>
@@ -402,11 +410,8 @@
 
     <script>
         const DEFAULT_PRICE = 10;
-        const STORAGE_KEY = "smokeTrackerProDataV4";
+        const STORAGE_KEY = "smokeTrackerProDataV5";
         const today = new Date().toISOString().split("T")[0];
-
-        let pendingAmount = null;
-        let isCustomPriceMode = false;
 
         document.getElementById("todayDate").innerText = new Date().toDateString();
 
@@ -422,61 +427,38 @@
             localStorage.setItem(STORAGE_KEY, JSON.stringify(smokeData));
         }
 
-        function showPriceModal(amount, customMode = false) {
-            pendingAmount = amount;
-            isCustomPriceMode = customMode;
-            const modal = document.getElementById("priceModal");
-            const title = document.getElementById("modalTitle");
-            const priceDiv = document.getElementById("priceOptions");
-            
-            if (customMode) {
-                title.innerText = "💸 Custom Cigarette Price";
-                priceDiv.innerHTML = `
-                    <button class="price-btn" onclick="addWithPrice(15)">₹15</button>
-                    <button class="price-btn" onclick="addWithPrice(20)">₹20</button>
-                    <button class="price-btn" onclick="addWithPrice(25)">₹25</button>
-                    <button class="price-btn" onclick="addWithPrice(30)">₹30</button>
-                    <button class="price-btn" onclick="addWithPrice(50)">₹50</button>
-                    <button class="price-btn" onclick="addWithPrice(100)">₹100</button>
-                `;
-            } else {
-                title.innerText = `💰 Price for ${amount} cigarette${amount === 1 ? '' : 's'}`;
-                priceDiv.innerHTML = `
-                    <button class="price-btn" onclick="addWithPrice(${DEFAULT_PRICE})">₹${DEFAULT_PRICE}</button>
-                    <button class="price-btn" onclick="addWithPrice(12)">₹12</button>
-                    <button class="price-btn" onclick="addWithPrice(15)">₹15</button>
-                    <button class="price-btn" onclick="addWithPrice(18)">₹18</button>
-                    <button class="price-btn" onclick="addWithPrice(20)">₹20</button>
-                    <button class="price-btn" onclick="addWithPrice(25)">₹25</button>
-                `;
-            }
-            modal.style.display = "flex";
+        // Quick add with default ₹10 price (NO POPUP)
+        function addQuickSmoke(amount) {
+            const totalPrice = amount * DEFAULT_PRICE;
+            addSmokeEntry(amount, DEFAULT_PRICE, totalPrice);
+        }
+
+        // Open modal for custom price
+        function showCustomPriceModal() {
+            document.getElementById("priceModal").style.display = "flex";
             document.getElementById("customPrice").value = "";
         }
 
-        function addWithPrice(pricePerCig) {
-            if (pendingAmount === null) return;
-            let totalPrice = pendingAmount * pricePerCig;
-            addSmokeWithPrice(pendingAmount, totalPrice, pricePerCig);
+        // Add custom price from preset buttons
+        function addCustomPrice(amount, pricePerUnit) {
+            const totalPrice = amount * pricePerUnit;
+            addSmokeEntry(amount, pricePerUnit, totalPrice);
             closeModal();
         }
 
-        function addWithCustomPrice() {
+        // Add custom price from input field
+        function addCustomPriceFromInput() {
             const customPrice = parseFloat(document.getElementById("customPrice").value);
             if (isNaN(customPrice) || customPrice <= 0) {
-                alert("Please enter a valid price");
+                alert("Please enter a valid price (₹)");
                 return;
             }
-            if (pendingAmount === null && isCustomPriceMode) {
-                // Custom price mode with amount 1 by default
-                addSmokeWithPrice(1, customPrice, customPrice);
-            } else if (pendingAmount !== null) {
-                addSmokeWithPrice(pendingAmount, pendingAmount * customPrice, customPrice);
-            }
+            addSmokeEntry(1, customPrice, customPrice);
             closeModal();
         }
 
-        function addSmokeWithPrice(amount, totalMoney, pricePerUnit) {
+        // Main function to add a smoke entry
+        function addSmokeEntry(amount, pricePerUnit, totalMoney) {
             if (!smokeData[today]) {
                 smokeData[today] = { total: 0, entries: [], totalMoney: 0 };
             }
@@ -492,11 +474,6 @@
             saveData();
             updateUI();
             triggerHaptic();
-        }
-
-        function addSmoke(amount) {
-            // Legacy fallback
-            addSmokeWithPrice(amount, amount * DEFAULT_PRICE, DEFAULT_PRICE);
         }
 
         function triggerHaptic() {
@@ -523,7 +500,6 @@
 
         function closeModal() {
             document.getElementById("priceModal").style.display = "none";
-            pendingAmount = null;
         }
 
         function updateUI() {
