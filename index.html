@@ -1,293 +1,336 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Smoke Tracker Pro</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <style>
-    *{
-      margin:0;
-      padding:0;
-      box-sizing:border-box;
-    }
-    body{
-      background:#081223;
-      font-family:Arial;
-      color:white;
-      padding:20px;
-    }
-    .container{
-      max-width:500px;
-      margin:auto;
-    }
-    .glass{
-      background:rgba(255,255,255,0.08);
-      border-radius:20px;
-      padding:20px;
-      margin-bottom:20px;
-      backdrop-filter:blur(12px);
-    }
-    h1{
-      text-align:center;
-      margin-bottom:10px;
-      font-size:38px;
-    }
-    .date{
-      text-align:center;
-      opacity:0.6;
-      margin-bottom:20px;
-    }
-    #count{
-      font-size:85px;
-      text-align:center;
-      margin:20px 0;
-      font-weight:bold;
-      color:#00e5ff;
-    }
-    .buttons{
-      display:flex;
-      gap:10px;
-    }
-    button{
-      flex:1;
-      border:none;
-      padding:15px;
-      border-radius:15px;
-      font-size:18px;
-      color:white;
-      cursor:pointer;
-    }
-    .green{
-      background:#00c853;
-    }
-    .orange{
-      background:#ff9800;
-    }
-    .red{
-      background:#ff1744;
-    }
-    .stats{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:12px;
-    }
-    .card{
-      background:rgba(255,255,255,0.05);
-      padding:15px;
-      border-radius:15px;
-      text-align:center;
-    }
-    .card h2{
-      margin-top:10px;
-      font-size:28px;
-    }
-    .timeline{
-      max-height:250px;
-      overflow-y:auto;
-    }
-    .item{
-      display:flex;
-      justify-content:space-between;
-      padding:12px;
-      border-bottom:1px solid rgba(255,255,255,0.08);
-    }
-    canvas{
-      margin-top:20px;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smoke Tracker Pro</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+}
+body{
+font-family:Arial,sans-serif;
+background:
+linear-gradient(135deg,#081223,#111c44);
+color:white;
+min-height:100vh;
+padding:20px;
+}
+.container{
+max-width:520px;
+margin:auto;
+}
+.title{
+text-align:center;
+margin-bottom:20px;
+}
+.title h1{
+font-size:40px;
+margin-bottom:8px;
+}
+.title p{
+opacity:0.7;
+}
+.glass{
+background:rgba(255,255,255,0.08);
+backdrop-filter:blur(15px);
+border:1px solid rgba(255,255,255,0.08);
+padding:20px;
+border-radius:25px;
+margin-bottom:20px;
+box-shadow:0 0 25px rgba(0,0,0,0.25);
+}
+.count{
+font-size:90px;
+font-weight:bold;
+text-align:center;
+margin:20px 0;
+transition:0.3s;
+}
+.safe{
+color:#00e676;
+}
+.warning{
+color:#ff9800;
+}
+.danger{
+color:#ff1744;
+}
+.buttons{
+display:flex;
+gap:10px;
+}
+button{
+flex:1;
+padding:15px;
+border:none;
+border-radius:16px;
+font-size:18px;
+font-weight:bold;
+cursor:pointer;
+color:white;
+transition:0.2s;
+}
+button:hover{
+transform:scale(1.03);
+}
+.green{
+background:#00c853;
+}
+.orange{
+background:#ff9800;
+}
+.red{
+background:#ff1744;
+}
+.stats{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:12px;
+margin-top:10px;
+}
+.card{
+background:rgba(255,255,255,0.05);
+padding:18px;
+border-radius:18px;
+text-align:center;
+}
+.card h2{
+margin-top:10px;
+font-size:28px;
+}
+.timeline{
+max-height:260px;
+overflow-y:auto;
+margin-top:15px;
+}
+.item{
+display:flex;
+justify-content:space-between;
+padding:14px;
+border-bottom:1px solid rgba(255,255,255,0.08);
+}
+.small{
+opacity:0.6;
+font-size:13px;
+}
+.footer{
+text-align:center;
+margin-top:20px;
+opacity:0.5;
+font-size:13px;
+}
+canvas{
+margin-top:15px;
+}
+</style>
 </head>
 <body>
-  <div class="container">
-    <div class="glass">
-      <h1>🚬 Smoke Tracker Pro</h1>
-      <div class="date" id="date"></div>
-      <div id="count">0</div>
-      <div class="buttons">
-        <button class="green" onclick="addSmoke(1)">
-          +1
-        </button>
-        <button class="orange" onclick="addSmoke(0.5)">
-          +0.5
-        </button>
-        <button class="red" onclick="resetDay()">
-          Reset
-        </button>
-      </div>
-    </div>
-    <div class="glass">
-      <div class="stats">
-        <div class="card">
-          Today
-          <h2 id="todayStat">0</h2>
-        </div>
-        <div class="card">
-          Weekly Avg
-          <h2 id="weekStat">0</h2>
-        </div>
-        <div class="card">
-          Entries
-          <h2 id="entryStat">0</h2>
-        </div>
-        <div class="card">
-          Monthly
-          <h2 id="monthStat">0</h2>
-        </div>
-      </div>
-    </div>
-    <div class="glass">
-      <h2>📈 Weekly Trend</h2>
-      <canvas id="chart"></canvas>
-    </div>
-    <div class="glass">
-      <h2>⏱ Timeline</h2>
-      <div class="timeline" id="timeline"></div>
-    </div>
-  </div>
-  <script type="module">
-    import { initializeApp }
-    from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-    import {
-      getFirestore,
-      doc,
-      setDoc,
-      getDoc,
-      collection,
-      getDocs
-    }
-    from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
-    const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_DOMAIN",
-      projectId: "YOUR_PROJECT_ID",
-      storageBucket: "YOUR_BUCKET",
-      messagingSenderId: "YOUR_MSG_ID",
-      appId: "YOUR_APP_ID"
-    };
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const today =
-      new Date().toISOString().split("T")[0];
-    document.getElementById("date")
-      .innerText = new Date().toDateString();
-    const todayRef =
-      doc(db,"smoke_logs",today);
-    let currentData = {
-      total:0,
-      entries:[]
-    };
-    async function loadToday(){
-      const snap =
-        await getDoc(todayRef);
-      if(snap.exists()){
-        currentData = snap.data();
-      }
-      updateUI();
-      loadChart();
-    }
-    async function saveData(){
-      await setDoc(todayRef,currentData);
-      updateUI();
-      loadChart();
-    }
-    window.addSmoke = async(amount)=>{
-      currentData.total += amount;
-      currentData.entries.unshift({
-        amount:amount,
-        time:new Date().toLocaleTimeString()
-      });
-      await saveData();
-    }
-    window.resetDay = async()=>{
-      if(confirm("Reset today?")){
-        currentData = {
-          total:0,
-          entries:[]
-        };
-        await saveData();
-      }
-    }
-    function updateUI(){
-      document.getElementById("count")
-        .innerText = currentData.total;
-      document.getElementById("todayStat")
-        .innerText = currentData.total;
-      document.getElementById("entryStat")
-        .innerText = currentData.entries.length;
-      const timeline =
-        document.getElementById("timeline");
-      timeline.innerHTML = "";
-      currentData.entries.forEach(entry=>{
-        timeline.innerHTML += `
-          <div class="item">
-            <div>
-              +${entry.amount}
-            </div>
-            <div>
-              ${entry.time}
-            </div>
-          </div>
-        `;
-      });
-    }
-    let chart;
-    async function loadChart(){
-      const query =
-        await getDocs(collection(db,"smoke_logs"));
-      let labels = [];
-      let values = [];
-      let total = 0;
-      query.forEach(doc=>{
-        labels.push(doc.id);
-        values.push(doc.data().total);
-        total += doc.data().total;
-      });
-      const avg =
-        (total / values.length || 0).toFixed(1);
-      document.getElementById("weekStat")
-        .innerText = avg;
-      document.getElementById("monthStat")
-        .innerText = total;
-      if(chart){
-        chart.destroy();
-      }
-      chart = new Chart(
-        document.getElementById("chart"),
-        {
-          type:"line",
-          data:{
-            labels:labels,
-            datasets:[{
-              label:"Cigarettes",
-              data:values,
-              tension:0.4
-            }]
-          },
-          options:{
-            plugins:{
-              legend:{
-                labels:{
-                  color:"white"
-                }
-              }
-            },
-            scales:{
-              x:{
-                ticks:{
-                  color:"white"
-                }
-              },
-              y:{
-                ticks:{
-                  color:"white"
-                }
-              }
-            }
-          }
-        }
-      );
-    }
-    loadToday();
-  </script>
+<div class="container">
+<div class="title">
+<h1>🚬 Smoke Tracker Pro</h1>
+<p id="date"></p>
+</div>
+<div class="glass">
+<div id="count" class="count safe">0</div>
+<div class="buttons">
+<button class="green" onclick="addSmoke(1)">
++1
+</button>
+<button class="orange" onclick="addSmoke(0.5)">
++0.5
+</button>
+<button class="red" onclick="resetToday()">
+Reset
+</button>
+</div>
+</div>
+<div class="glass">
+<h2>📊 Analytics</h2>
+<div class="stats">
+<div class="card">
+Today
+<h2 id="todayTotal">0</h2>
+</div>
+<div class="card">
+Weekly Avg
+<h2 id="weeklyAvg">0</h2>
+</div>
+<div class="card">
+Money Today
+<h2 id="moneyToday">₹0</h2>
+</div>
+<div class="card">
+Monthly Total
+<h2 id="monthlyTotal">0</h2>
+</div>
+</div>
+</div>
+<div class="glass">
+<h2>📈 Last 7 Days</h2>
+<canvas id="chart"></canvas>
+</div>
+<div class="glass">
+<h2>⏱ Timeline</h2>
+<div class="timeline" id="timeline"></div>
+</div>
+<div class="footer">
+Smoke Tracker Pro • Local Storage Enabled
+</div>
+</div>
+<script>
+const PRICE_PER_CIG = 10;
+const today =
+new Date().toISOString().split("T")[0];
+document.getElementById("date")
+.innerText =
+new Date().toDateString();
+let smokeData =
+JSON.parse(localStorage.getItem("smokeData")) || {};
+if(!smokeData[today]){
+smokeData[today]={
+total:0,
+entries:[]
+};
+saveData();
+}
+function saveData(){
+localStorage.setItem(
+"smokeData",
+JSON.stringify(smokeData)
+);
+}
+function addSmoke(amount){
+smokeData[today].total += amount;
+smokeData[today].entries.unshift({
+amount:amount,
+time:new Date().toLocaleTimeString()
+});
+saveData();
+updateUI();
+}
+function resetToday(){
+if(confirm("Reset today's data?")){
+smokeData[today]={
+total:0,
+entries:[]
+};
+saveData();
+updateUI();
+}
+}
+function updateUI(){
+const total =
+smokeData[today].total;
+const countEl =
+document.getElementById("count");
+countEl.innerText = total;
+countEl.className = "count";
+if(total <= 3){
+countEl.classList.add("safe");
+}
+else if(total <= 7){
+countEl.classList.add("warning");
+}
+else{
+countEl.classList.add("danger");
+}
+document.getElementById("todayTotal")
+.innerText = total;
+document.getElementById("moneyToday")
+.innerText =
+"₹" + (total * PRICE_PER_CIG);
+updateStats();
+updateTimeline();
+updateChart();
+}
+function updateStats(){
+const dates =
+Object.keys(smokeData);
+let monthly = 0;
+dates.forEach(date=>{
+monthly += smokeData[date].total;
+});
+document.getElementById("monthlyTotal")
+.innerText = monthly;
+const avg =
+(monthly / dates.length || 0)
+.toFixed(1);
+document.getElementById("weeklyAvg")
+.innerText = avg;
+}
+function updateTimeline(){
+const timeline =
+document.getElementById("timeline");
+timeline.innerHTML = "";
+smokeData[today].entries.forEach(entry=>{
+timeline.innerHTML += `
+<div class="item">
+<div>
+<strong>+${entry.amount}</strong>
+</div>
+<div class="small">
+${entry.time}
+</div>
+</div>
+`;
+});
+}
+let chart;
+function updateChart(){
+const labels = [];
+const values = [];
+const dates =
+Object.keys(smokeData)
+.slice(-7);
+dates.forEach(date=>{
+labels.push(date.substring(5));
+values.push(smokeData[date].total);
+});
+if(chart){
+chart.destroy();
+}
+chart = new Chart(
+document.getElementById("chart"),
+{
+type:"line",
+data:{
+labels:labels,
+datasets:[{
+label:"Cigarettes",
+data:values,
+tension:0.4,
+fill:true
+}]
+},
+options:{
+plugins:{
+legend:{
+labels:{
+color:"white"
+}
+}
+},
+scales:{
+x:{
+ticks:{
+color:"white"
+}
+},
+y:{
+ticks:{
+color:"white"
+}
+}
+}
+}
+}
+);
+}
+updateUI();
+</script>
 </body>
 </html>
