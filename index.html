@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Smoke Tracker Pro • Monthly View</title>
+    <title>Smoke Tracker Pro • Premium</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         * {
@@ -364,7 +364,7 @@
             <input type="file" id="fileInput" hidden>
         </div>
 
-        <div class="footer">Smoke Tracker Pro • Select any month to see your history</div>
+        <div class="footer">Smoke Tracker Pro • Siri: "Smoked a cigarette" or "Smoked half a cigarette"</div>
     </div>
 
     <!-- Price Modal -->
@@ -391,7 +391,7 @@
         const DEFAULT_PRICE = 10;
         const STORAGE_KEY = "smokeTrackerProDataV6";
         const today = new Date().toISOString().split("T")[0];
-        let currentMonth = today.slice(0,7); // YYYY-MM
+        let currentMonth = today.slice(0,7);
         let monthlyChart = null;
 
         document.getElementById("todayDate").innerText = new Date().toDateString();
@@ -403,6 +403,25 @@
         if (smokeData[today].totalMoney === undefined) {
             smokeData[today].totalMoney = 0;
         }
+
+        // ========== SIRI URL LISTENER ==========
+        function checkSiriCommand() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const addValue = urlParams.get('add');
+            
+            if (addValue === '1') {
+                // Remove the parameter from URL without refreshing
+                window.history.replaceState({}, document.title, window.location.pathname);
+                addQuickSmoke(1);
+                return true;
+            } else if (addValue === '0.5') {
+                window.history.replaceState({}, document.title, window.location.pathname);
+                addQuickSmoke(0.5);
+                return true;
+            }
+            return false;
+        }
+        // =====================================
 
         function saveData() {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(smokeData));
@@ -515,18 +534,15 @@
             const datesInMonth = Object.keys(smokeData).filter(date => date.startsWith(currentMonth)).sort();
             let monthTotal = 0;
             let monthMoney = 0;
-            const dailyData = {};
             
             datesInMonth.forEach(date => {
                 monthTotal += smokeData[date].total || 0;
                 monthMoney += smokeData[date].totalMoney || 0;
-                dailyData[date] = smokeData[date].total || 0;
             });
 
             document.getElementById("monthTotalCigs").innerText = monthTotal;
             document.getElementById("monthTotalMoney").innerText = "₹" + Math.round(monthMoney);
 
-            // Create daily chart for the month
             const labels = datesInMonth.map(d => d.substring(5));
             const values = datesInMonth.map(d => smokeData[d].total || 0);
 
@@ -553,7 +569,7 @@
                     },
                     scales: {
                         x: { ticks: { color: getComputedStyle(document.body).getPropertyValue('--text-dim').trim(), maxRotation: 45, minRotation: 45 } },
-                        y: { ticks: { color: getComputedStyle(document.body).getPropertyValue('--text-dim').trim() }, beginAtZero: true, title: { display: true, text: 'Cigarettes', color: getComputedStyle(document.body).getPropertyValue('--text-dim').trim() } }
+                        y: { ticks: { color: getComputedStyle(document.body).getPropertyValue('--text-dim').trim() }, beginAtZero: true }
                     }
                 }
             });
@@ -662,8 +678,10 @@
             if (event.target === modal) closeModal();
         }
 
+        // Run Siri check AFTER everything is loaded
         updateMonthSelector();
         updateUI();
+        checkSiriCommand();  // This listens for ?add=1 or ?add=0.5
     </script>
 </body>
 </html>
