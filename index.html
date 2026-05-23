@@ -49,7 +49,6 @@
             margin: 0 auto;
         }
 
-        /* Header with theme toggle */
         .header {
             display: flex;
             justify-content: space-between;
@@ -84,7 +83,6 @@
             backdrop-filter: blur(5px);
         }
 
-        /* Glass cards */
         .glass-card {
             background: var(--glass-bg);
             backdrop-filter: blur(12px);
@@ -99,7 +97,6 @@
             transform: translateY(-2px);
         }
 
-        /* Main counter */
         .counter-section {
             text-align: center;
         }
@@ -144,17 +141,92 @@
             background: linear-gradient(135deg, var(--orange), #d97706);
             color: white;
         }
+        .btn-custom {
+            background: linear-gradient(135deg, var(--purple), #7c3aed);
+            color: white;
+        }
         .btn-reset {
             background: rgba(239,68,68,0.2);
             border: 1px solid var(--red);
             color: var(--red);
+        }
+        .btn-danger {
+            background: rgba(239,68,68,0.15);
+            border: 1px solid var(--red);
+            color: var(--red);
+            font-size: 14px;
+            padding: 10px 20px;
         }
         .btn:hover {
             transform: scale(1.05);
             filter: brightness(1.05);
         }
 
-        /* Stats grid */
+        /* Price selector modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 40px;
+            padding: 28px;
+            width: 90%;
+            max-width: 340px;
+            text-align: center;
+        }
+        .price-options {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin: 24px 0;
+        }
+        .price-btn {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid var(--glass-border);
+            border-radius: 60px;
+            padding: 14px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            color: var(--text);
+            transition: 0.2s;
+        }
+        .price-btn:hover {
+            background: var(--purple);
+            transform: scale(1.05);
+        }
+        .custom-price-input {
+            display: flex;
+            gap: 10px;
+            margin-top: 16px;
+        }
+        .custom-price-input input {
+            flex: 1;
+            padding: 12px;
+            border-radius: 60px;
+            border: 1px solid var(--glass-border);
+            background: rgba(255,255,255,0.1);
+            color: var(--text);
+            font-size: 16px;
+            text-align: center;
+        }
+        .modal-close {
+            background: var(--red);
+            margin-top: 16px;
+        }
+
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -180,7 +252,6 @@
             margin-top: 6px;
         }
 
-        /* Timeline */
         .timeline-list {
             max-height: 280px;
             overflow-y: auto;
@@ -205,18 +276,23 @@
             background: var(--green);
             box-shadow: 0 0 8px var(--green);
         }
+        .timeline-price {
+            font-size: 12px;
+            opacity: 0.7;
+            background: rgba(139,92,246,0.2);
+            padding: 2px 8px;
+            border-radius: 20px;
+        }
         .timeline-time {
             font-size: 12px;
             opacity: 0.5;
         }
 
-        /* Chart container */
         canvas {
             max-height: 220px;
             margin-top: 10px;
         }
 
-        /* Scrollbar */
         .timeline-list::-webkit-scrollbar {
             width: 4px;
         }
@@ -229,12 +305,16 @@
             border-radius: 10px;
         }
 
-        /* Footer */
         .footer {
             text-align: center;
             font-size: 12px;
             opacity: 0.4;
             margin-top: 24px;
+        }
+
+        .reset-all-btn {
+            margin-top: 12px;
+            text-align: center;
         }
 
         @media (max-width: 500px) {
@@ -259,8 +339,9 @@
         <div class="glass-card counter-section">
             <div id="count" class="count-number safe">0</div>
             <div class="btn-group">
-                <button class="btn btn-primary" onclick="addSmoke(1)">+1 🚬</button>
-                <button class="btn btn-half" onclick="addSmoke(0.5)">+0.5 🔥</button>
+                <button class="btn btn-primary" onclick="showPriceModal(1)">+1 🚬</button>
+                <button class="btn btn-half" onclick="showPriceModal(0.5)">+0.5 🔥</button>
+                <button class="btn btn-custom" onclick="showPriceModal(null, true)">💸 Custom Price</button>
                 <button class="btn btn-reset" onclick="resetToday()">Reset ↻</button>
             </div>
         </div>
@@ -290,43 +371,121 @@
             <div id="timeline" class="timeline-list"></div>
         </div>
 
-        <!-- Backup card -->
+        <!-- Backup & Reset card -->
         <div class="glass-card">
-            <div style="font-weight: 600; margin-bottom: 16px;">💾 Data Backup</div>
-            <div style="display: flex; gap: 12px;">
+            <div style="font-weight: 600; margin-bottom: 16px;">💾 Data Management</div>
+            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
                 <button class="btn" style="background: var(--blue); color: white; flex:1;" onclick="exportData()">⬇ Export</button>
                 <button class="btn" style="background: var(--purple); color: white; flex:1;" onclick="importData()">⬆ Import</button>
+            </div>
+            <div class="reset-all-btn">
+                <button class="btn btn-danger" onclick="resetAllData()">⚠️ RESET ALL DATA</button>
             </div>
             <input type="file" id="fileInput" hidden>
         </div>
 
-        <div class="footer">Smoke Tracker Pro • Your data stays on your device</div>
+        <div class="footer">Smoke Tracker Pro • Tap + to set custom price</div>
+    </div>
+
+    <!-- Price Modal -->
+    <div id="priceModal" class="modal">
+        <div class="modal-content">
+            <h3 id="modalTitle">💰 Select Price</h3>
+            <div class="price-options" id="priceOptions"></div>
+            <div class="custom-price-input">
+                <input type="number" id="customPrice" placeholder="Other amount" step="1" min="1">
+                <button class="btn btn-primary" style="padding: 12px 20px;" onclick="addWithCustomPrice()">Add</button>
+            </div>
+            <button class="btn modal-close" onclick="closeModal()">Cancel</button>
+        </div>
     </div>
 
     <script>
-        const PRICE_PER_CIG = 10;
-        const STORAGE_KEY = "smokeTrackerProDataV3";
+        const DEFAULT_PRICE = 10;
+        const STORAGE_KEY = "smokeTrackerProDataV4";
         const today = new Date().toISOString().split("T")[0];
+
+        let pendingAmount = null;
+        let isCustomPriceMode = false;
 
         document.getElementById("todayDate").innerText = new Date().toDateString();
 
         let smokeData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
         if (!smokeData[today]) {
-            smokeData[today] = { total: 0, entries: [] };
-            saveData();
+            smokeData[today] = { total: 0, entries: [], totalMoney: 0 };
+        }
+        if (smokeData[today].totalMoney === undefined) {
+            smokeData[today].totalMoney = 0;
         }
 
         function saveData() {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(smokeData));
         }
 
-        function addSmoke(amount) {
+        function showPriceModal(amount, customMode = false) {
+            pendingAmount = amount;
+            isCustomPriceMode = customMode;
+            const modal = document.getElementById("priceModal");
+            const title = document.getElementById("modalTitle");
+            const priceDiv = document.getElementById("priceOptions");
+            
+            if (customMode) {
+                title.innerText = "💸 Custom Cigarette Price";
+                priceDiv.innerHTML = `
+                    <button class="price-btn" onclick="addWithPrice(15)">₹15</button>
+                    <button class="price-btn" onclick="addWithPrice(20)">₹20</button>
+                    <button class="price-btn" onclick="addWithPrice(25)">₹25</button>
+                    <button class="price-btn" onclick="addWithPrice(30)">₹30</button>
+                    <button class="price-btn" onclick="addWithPrice(50)">₹50</button>
+                    <button class="price-btn" onclick="addWithPrice(100)">₹100</button>
+                `;
+            } else {
+                title.innerText = `💰 Price for ${amount} cigarette${amount === 1 ? '' : 's'}`;
+                priceDiv.innerHTML = `
+                    <button class="price-btn" onclick="addWithPrice(${DEFAULT_PRICE})">₹${DEFAULT_PRICE}</button>
+                    <button class="price-btn" onclick="addWithPrice(12)">₹12</button>
+                    <button class="price-btn" onclick="addWithPrice(15)">₹15</button>
+                    <button class="price-btn" onclick="addWithPrice(18)">₹18</button>
+                    <button class="price-btn" onclick="addWithPrice(20)">₹20</button>
+                    <button class="price-btn" onclick="addWithPrice(25)">₹25</button>
+                `;
+            }
+            modal.style.display = "flex";
+            document.getElementById("customPrice").value = "";
+        }
+
+        function addWithPrice(pricePerCig) {
+            if (pendingAmount === null) return;
+            let totalPrice = pendingAmount * pricePerCig;
+            addSmokeWithPrice(pendingAmount, totalPrice, pricePerCig);
+            closeModal();
+        }
+
+        function addWithCustomPrice() {
+            const customPrice = parseFloat(document.getElementById("customPrice").value);
+            if (isNaN(customPrice) || customPrice <= 0) {
+                alert("Please enter a valid price");
+                return;
+            }
+            if (pendingAmount === null && isCustomPriceMode) {
+                // Custom price mode with amount 1 by default
+                addSmokeWithPrice(1, customPrice, customPrice);
+            } else if (pendingAmount !== null) {
+                addSmokeWithPrice(pendingAmount, pendingAmount * customPrice, customPrice);
+            }
+            closeModal();
+        }
+
+        function addSmokeWithPrice(amount, totalMoney, pricePerUnit) {
             if (!smokeData[today]) {
-                smokeData[today] = { total: 0, entries: [] };
+                smokeData[today] = { total: 0, entries: [], totalMoney: 0 };
             }
             smokeData[today].total += amount;
+            smokeData[today].totalMoney = (smokeData[today].totalMoney || 0) + totalMoney;
             smokeData[today].entries.unshift({
                 amount: amount,
+                price: pricePerUnit,
+                totalPrice: totalMoney,
                 time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
                 timestamp: Date.now()
             });
@@ -335,20 +494,41 @@
             triggerHaptic();
         }
 
+        function addSmoke(amount) {
+            // Legacy fallback
+            addSmokeWithPrice(amount, amount * DEFAULT_PRICE, DEFAULT_PRICE);
+        }
+
         function triggerHaptic() {
             if (navigator.vibrate) navigator.vibrate(50);
         }
 
         function resetToday() {
-            if (confirm("⚠️ Reset only TODAY's data? This cannot be undone.")) {
-                smokeData[today] = { total: 0, entries: [] };
+            if (confirm("⚠️ Reset ONLY today's data? This cannot be undone.")) {
+                smokeData[today] = { total: 0, entries: [], totalMoney: 0 };
                 saveData();
                 updateUI();
             }
         }
 
+        function resetAllData() {
+            if (confirm("⚠️⚠️⚠️ THIS WILL DELETE EVERYTHING! All your smoking history will be gone forever. Are you ABSOLUTELY sure?")) {
+                smokeData = {};
+                smokeData[today] = { total: 0, entries: [], totalMoney: 0 };
+                saveData();
+                updateUI();
+                alert("All data has been reset.");
+            }
+        }
+
+        function closeModal() {
+            document.getElementById("priceModal").style.display = "none";
+            pendingAmount = null;
+        }
+
         function updateUI() {
             const total = smokeData[today]?.total || 0;
+            const totalMoney = smokeData[today]?.totalMoney || 0;
             const countEl = document.getElementById("count");
             countEl.innerText = total;
             countEl.className = "count-number";
@@ -357,7 +537,7 @@
             else countEl.classList.add("danger");
 
             document.getElementById("todayTotal").innerText = total;
-            document.getElementById("moneyToday").innerText = "₹" + (total * PRICE_PER_CIG);
+            document.getElementById("moneyToday").innerText = "₹" + Math.round(totalMoney);
             updateStats();
             updateTimeline();
             updateChart();
@@ -366,24 +546,26 @@
         function updateStats() {
             const dates = Object.keys(smokeData);
             let lifeTotal = 0;
+            let lifeMoney = 0;
             let monthlyTotal = 0;
             const currentMonth = today.slice(0,7);
             dates.forEach(date => {
-                lifeTotal += smokeData[date].total;
-                if (date.startsWith(currentMonth)) monthlyTotal += smokeData[date].total;
+                lifeTotal += smokeData[date].total || 0;
+                lifeMoney += smokeData[date].totalMoney || 0;
+                if (date.startsWith(currentMonth)) monthlyTotal += smokeData[date].total || 0;
             });
-            const weeklyValues = dates.slice(-7).map(d => smokeData[d].total);
+            const weeklyValues = dates.slice(-7).map(d => smokeData[d].total || 0);
             const weeklyAvg = (weeklyValues.reduce((a,b)=>a+b,0) / (weeklyValues.length || 1)).toFixed(1);
             document.getElementById("weeklyAvg").innerText = weeklyAvg;
             document.getElementById("monthlyTotal").innerText = monthlyTotal;
             document.getElementById("lifeTotal").innerText = lifeTotal;
-            document.getElementById("totalSpent").innerText = "₹" + (lifeTotal * PRICE_PER_CIG);
+            document.getElementById("totalSpent").innerText = "₹" + Math.round(lifeMoney);
         }
 
         function updateTimeline() {
             const timeline = document.getElementById("timeline");
             const entries = smokeData[today].entries;
-            if (entries.length === 0) {
+            if (!entries || entries.length === 0) {
                 timeline.innerHTML = `<div class="timeline-item"><div class="timeline-badge">✨ No cigarettes logged today</div></div>`;
                 return;
             }
@@ -392,6 +574,7 @@
                     <div class="timeline-badge">
                         <div class="timeline-dot"></div>
                         <strong>+${entry.amount}</strong>
+                        <span class="timeline-price">₹${entry.price}</span>
                     </div>
                     <div class="timeline-time">${entry.time}</div>
                 </div>
@@ -405,7 +588,7 @@
             const dates = Object.keys(smokeData).sort().slice(-7);
             dates.forEach(date => {
                 labels.push(date.substring(5));
-                values.push(smokeData[date].total);
+                values.push(smokeData[date].total || 0);
             });
             if (chart) chart.destroy();
             const ctx = document.getElementById("chart").getContext("2d");
@@ -465,7 +648,7 @@
                     const imported = JSON.parse(event.target.result);
                     smokeData = imported;
                     if (!smokeData[today]) {
-                        smokeData[today] = { total: 0, entries: [] };
+                        smokeData[today] = { total: 0, entries: [], totalMoney: 0 };
                     }
                     saveData();
                     updateUI();
@@ -480,6 +663,12 @@
         function toggleTheme() {
             document.body.classList.toggle('light');
             if (chart) updateChart();
+        }
+
+        // Close modal on outside click
+        window.onclick = function(event) {
+            const modal = document.getElementById("priceModal");
+            if (event.target === modal) closeModal();
         }
 
         updateUI();
