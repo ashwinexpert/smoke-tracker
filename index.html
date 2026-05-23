@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Smoke Tracker Pro • Premium</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            --glass-bg: rgba(255, 255, 255, 0.07);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text: #f8fafc;
+            --text-dim: rgba(255,255,255,0.6);
+            --green: #10b981;
+            --orange: #f59e0b;
+            --red: #ef4444;
+            --blue: #3b82f6;
+            --purple: #8b5cf6;
+            --card-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+
+        body.light {
+            --bg-gradient: linear-gradient(135deg, #e2e8f0 0%, #f1f5f9 100%);
+            --glass-bg: rgba(255, 255, 255, 0.6);
+            --glass-border: rgba(0, 0, 0, 0.05);
+            --text: #0f172a;
+            --text-dim: #475569;
+            --card-shadow: 0 8px 32px rgba(0,0,0,0.08);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg-gradient);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Header with theme toggle */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .header h1 {
+            font-size: 28px;
+            background: linear-gradient(135deg, #fff, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .theme-btn {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 100px;
+            padding: 10px 20px;
+            cursor: pointer;
+            color: var(--text);
+            font-weight: 500;
+            backdrop-filter: blur(10px);
+            transition: 0.2s;
+        }
+        .date-badge {
+            background: rgba(139, 92, 246, 0.2);
+            padding: 6px 14px;
+            border-radius: 100px;
+            font-size: 14px;
+            backdrop-filter: blur(5px);
+        }
+
+        /* Glass cards */
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 32px;
+            padding: 24px;
+            margin-bottom: 20px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: var(--card-shadow);
+        }
+        .glass-card:hover {
+            transform: translateY(-2px);
+        }
+
+        /* Main counter */
+        .counter-section {
+            text-align: center;
+        }
+        .count-number {
+            font-size: 110px;
+            font-weight: 800;
+            margin: 20px 0;
+            transition: all 0.2s ease;
+            letter-spacing: -2px;
+        }
+        .count-number.safe { color: var(--green); text-shadow: 0 0 20px rgba(16,185,129,0.3); }
+        .count-number.warning { color: var(--orange); text-shadow: 0 0 20px rgba(245,158,11,0.3); }
+        .count-number.danger { color: var(--red); text-shadow: 0 0 20px rgba(239,68,68,0.3); animation: pulse 1s infinite; }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .btn {
+            border: none;
+            border-radius: 60px;
+            padding: 14px 24px;
+            font-weight: 700;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.2s;
+            backdrop-filter: blur(4px);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--green), #059669);
+            color: white;
+            box-shadow: 0 4px 15px rgba(16,185,129,0.3);
+        }
+        .btn-half {
+            background: linear-gradient(135deg, var(--orange), #d97706);
+            color: white;
+        }
+        .btn-reset {
+            background: rgba(239,68,68,0.2);
+            border: 1px solid var(--red);
+            color: var(--red);
+        }
+        .btn:hover {
+            transform: scale(1.05);
+            filter: brightness(1.05);
+        }
+
+        /* Stats grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 14px;
+            margin-top: 10px;
+        }
+        .stat-item {
+            background: rgba(255,255,255,0.05);
+            border-radius: 24px;
+            padding: 16px;
+            text-align: center;
+            transition: 0.2s;
+        }
+        .stat-label {
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.6;
+        }
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            margin-top: 6px;
+        }
+
+        /* Timeline */
+        .timeline-list {
+            max-height: 280px;
+            overflow-y: auto;
+            padding-right: 6px;
+        }
+        .timeline-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 0;
+            border-bottom: 1px solid var(--glass-border);
+        }
+        .timeline-badge {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .timeline-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--green);
+            box-shadow: 0 0 8px var(--green);
+        }
+        .timeline-time {
+            font-size: 12px;
+            opacity: 0.5;
+        }
+
+        /* Chart container */
+        canvas {
+            max-height: 220px;
+            margin-top: 10px;
+        }
+
+        /* Scrollbar */
+        .timeline-list::-webkit-scrollbar {
+            width: 4px;
+        }
+        .timeline-list::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+        }
+        .timeline-list::-webkit-scrollbar-thumb {
+            background: var(--purple);
+            border-radius: 10px;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            font-size: 12px;
+            opacity: 0.4;
+            margin-top: 24px;
+        }
+
+        @media (max-width: 500px) {
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+            .count-number { font-size: 80px; }
+            .btn { padding: 12px 20px; font-size: 16px; }
+            .glass-card { padding: 18px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚬 Smoke Tracker</h1>
+            <div style="display: flex; gap: 10px;">
+                <div class="date-badge" id="todayDate"></div>
+                <button class="theme-btn" onclick="toggleTheme()">🌓 Theme</button>
+            </div>
+        </div>
+
+        <!-- Main counter card -->
+        <div class="glass-card counter-section">
+            <div id="count" class="count-number safe">0</div>
+            <div class="btn-group">
+                <button class="btn btn-primary" onclick="addSmoke(1)">+1 🚬</button>
+                <button class="btn btn-half" onclick="addSmoke(0.5)">+0.5 🔥</button>
+                <button class="btn btn-reset" onclick="resetToday()">Reset ↻</button>
+            </div>
+        </div>
+
+        <!-- Stats dashboard -->
+        <div class="glass-card">
+            <div style="font-weight: 600; margin-bottom: 16px;">📊 Your Stats</div>
+            <div class="stats-grid">
+                <div class="stat-item"><div class="stat-label">Today</div><div class="stat-value" id="todayTotal">0</div></div>
+                <div class="stat-item"><div class="stat-label">Weekly Avg</div><div class="stat-value" id="weeklyAvg">0</div></div>
+                <div class="stat-item"><div class="stat-label">Money Today</div><div class="stat-value" id="moneyToday">₹0</div></div>
+                <div class="stat-item"><div class="stat-label">Total Spent</div><div class="stat-value" id="totalSpent">₹0</div></div>
+                <div class="stat-item"><div class="stat-label">Monthly</div><div class="stat-value" id="monthlyTotal">0</div></div>
+                <div class="stat-item"><div class="stat-label">Lifetime</div><div class="stat-value" id="lifeTotal">0</div></div>
+            </div>
+        </div>
+
+        <!-- Chart card -->
+        <div class="glass-card">
+            <div style="font-weight: 600; margin-bottom: 12px;">📈 Last 7 Days Trend</div>
+            <canvas id="chart"></canvas>
+        </div>
+
+        <!-- Timeline card -->
+        <div class="glass-card">
+            <div style="font-weight: 600; margin-bottom: 12px;">⏱ Today's Log</div>
+            <div id="timeline" class="timeline-list"></div>
+        </div>
+
+        <!-- Backup card -->
+        <div class="glass-card">
+            <div style="font-weight: 600; margin-bottom: 16px;">💾 Data Backup</div>
+            <div style="display: flex; gap: 12px;">
+                <button class="btn" style="background: var(--blue); color: white; flex:1;" onclick="exportData()">⬇ Export</button>
+                <button class="btn" style="background: var(--purple); color: white; flex:1;" onclick="importData()">⬆ Import</button>
+            </div>
+            <input type="file" id="fileInput" hidden>
+        </div>
+
+        <div class="footer">Smoke Tracker Pro • Your data stays on your device</div>
+    </div>
+
+    <script>
+        const PRICE_PER_CIG = 10;
+        const STORAGE_KEY = "smokeTrackerProDataV3";
+        const today = new Date().toISOString().split("T")[0];
+
+        document.getElementById("todayDate").innerText = new Date().toDateString();
+
+        let smokeData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+        if (!smokeData[today]) {
+            smokeData[today] = { total: 0, entries: [] };
+            saveData();
+        }
+
+        function saveData() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(smokeData));
+        }
+
+        function addSmoke(amount) {
+            if (!smokeData[today]) {
+                smokeData[today] = { total: 0, entries: [] };
+            }
+            smokeData[today].total += amount;
+            smokeData[today].entries.unshift({
+                amount: amount,
+                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                timestamp: Date.now()
+            });
+            saveData();
+            updateUI();
+            triggerHaptic();
+        }
+
+        function triggerHaptic() {
+            if (navigator.vibrate) navigator.vibrate(50);
+        }
+
+        function resetToday() {
+            if (confirm("⚠️ Reset only TODAY's data? This cannot be undone.")) {
+                smokeData[today] = { total: 0, entries: [] };
+                saveData();
+                updateUI();
+            }
+        }
+
+        function updateUI() {
+            const total = smokeData[today]?.total || 0;
+            const countEl = document.getElementById("count");
+            countEl.innerText = total;
+            countEl.className = "count-number";
+            if (total <= 3) countEl.classList.add("safe");
+            else if (total <= 7) countEl.classList.add("warning");
+            else countEl.classList.add("danger");
+
+            document.getElementById("todayTotal").innerText = total;
+            document.getElementById("moneyToday").innerText = "₹" + (total * PRICE_PER_CIG);
+            updateStats();
+            updateTimeline();
+            updateChart();
+        }
+
+        function updateStats() {
+            const dates = Object.keys(smokeData);
+            let lifeTotal = 0;
+            let monthlyTotal = 0;
+            const currentMonth = today.slice(0,7);
+            dates.forEach(date => {
+                lifeTotal += smokeData[date].total;
+                if (date.startsWith(currentMonth)) monthlyTotal += smokeData[date].total;
+            });
+            const weeklyValues = dates.slice(-7).map(d => smokeData[d].total);
+            const weeklyAvg = (weeklyValues.reduce((a,b)=>a+b,0) / (weeklyValues.length || 1)).toFixed(1);
+            document.getElementById("weeklyAvg").innerText = weeklyAvg;
+            document.getElementById("monthlyTotal").innerText = monthlyTotal;
+            document.getElementById("lifeTotal").innerText = lifeTotal;
+            document.getElementById("totalSpent").innerText = "₹" + (lifeTotal * PRICE_PER_CIG);
+        }
+
+        function updateTimeline() {
+            const timeline = document.getElementById("timeline");
+            const entries = smokeData[today].entries;
+            if (entries.length === 0) {
+                timeline.innerHTML = `<div class="timeline-item"><div class="timeline-badge">✨ No cigarettes logged today</div></div>`;
+                return;
+            }
+            timeline.innerHTML = entries.map(entry => `
+                <div class="timeline-item">
+                    <div class="timeline-badge">
+                        <div class="timeline-dot"></div>
+                        <strong>+${entry.amount}</strong>
+                    </div>
+                    <div class="timeline-time">${entry.time}</div>
+                </div>
+            `).join('');
+        }
+
+        let chart;
+        function updateChart() {
+            const labels = [];
+            const values = [];
+            const dates = Object.keys(smokeData).sort().slice(-7);
+            dates.forEach(date => {
+                labels.push(date.substring(5));
+                values.push(smokeData[date].total);
+            });
+            if (chart) chart.destroy();
+            const ctx = document.getElementById("chart").getContext("2d");
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Cigarettes',
+                        data: values,
+                        borderColor: '#8b5cf6',
+                        backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                        borderWidth: 3,
+                        tension: 0.3,
+                        fill: true,
+                        pointBackgroundColor: '#8b5cf6',
+                        pointBorderColor: '#fff',
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: { labels: { color: getComputedStyle(document.body).getPropertyValue('--text').trim() } }
+                    },
+                    scales: {
+                        x: { ticks: { color: getComputedStyle(document.body).getPropertyValue('--text-dim').trim() } },
+                        y: { ticks: { color: getComputedStyle(document.body).getPropertyValue('--text-dim').trim() }, beginAtZero: true }
+                    }
+                }
+            });
+        }
+
+        function exportData() {
+            const dataStr = JSON.stringify(smokeData, null, 2);
+            const blob = new Blob([dataStr], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `smoke-backup-${today}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function importData() {
+            document.getElementById("fileInput").click();
+        }
+
+        document.getElementById("fileInput").addEventListener("change", function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                try {
+                    const imported = JSON.parse(event.target.result);
+                    smokeData = imported;
+                    if (!smokeData[today]) {
+                        smokeData[today] = { total: 0, entries: [] };
+                    }
+                    saveData();
+                    updateUI();
+                    alert("✅ Backup restored successfully!");
+                } catch {
+                    alert("❌ Invalid backup file");
+                }
+            };
+            reader.readAsText(file);
+        });
+
+        function toggleTheme() {
+            document.body.classList.toggle('light');
+            if (chart) updateChart();
+        }
+
+        updateUI();
+    </script>
+</body>
+</html>
