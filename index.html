@@ -1,312 +1,591 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Smoke Tracker Pro</title>
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <style>
+
 *{
 margin:0;
 padding:0;
 box-sizing:border-box;
 }
+
 body{
 font-family:Arial,sans-serif;
 background:
-linear-gradient(135deg,#081223,#111c44);
-color:white;
+radial-gradient(circle at top left,#1e3c72,#081223 40%),
+radial-gradient(circle at bottom right,#ff174433,#081223 40%);
 min-height:100vh;
+color:white;
 padding:20px;
+overflow-x:hidden;
 }
+
 .container{
-max-width:520px;
+max-width:550px;
 margin:auto;
 }
-.title{
+
+.header{
 text-align:center;
 margin-bottom:20px;
 }
-.title h1{
-font-size:40px;
+
+.header h1{
+font-size:42px;
 margin-bottom:8px;
 }
-.title p{
+
+.header p{
 opacity:0.7;
 }
+
 .glass{
 background:rgba(255,255,255,0.08);
-backdrop-filter:blur(15px);
 border:1px solid rgba(255,255,255,0.08);
-padding:20px;
-border-radius:25px;
+backdrop-filter:blur(15px);
+border-radius:28px;
+padding:22px;
 margin-bottom:20px;
-box-shadow:0 0 25px rgba(0,0,0,0.25);
+box-shadow:0 0 30px rgba(0,0,0,0.25);
 }
+
 .count{
-font-size:90px;
+font-size:95px;
 font-weight:bold;
 text-align:center;
-margin:20px 0;
+margin:15px 0;
 transition:0.3s;
 }
+
 .safe{
 color:#00e676;
 }
+
 .warning{
 color:#ff9800;
 }
+
 .danger{
 color:#ff1744;
 }
-.buttons{
+
+.button-row{
 display:flex;
-gap:10px;
+gap:12px;
+margin-top:15px;
 }
+
 button{
-flex:1;
-padding:15px;
 border:none;
-border-radius:16px;
+border-radius:18px;
+padding:15px;
 font-size:18px;
 font-weight:bold;
 cursor:pointer;
 color:white;
 transition:0.2s;
 }
+
 button:hover{
 transform:scale(1.03);
 }
+
+.main-btn{
+flex:1;
+}
+
 .green{
 background:#00c853;
 }
+
 .orange{
 background:#ff9800;
 }
-.red{
+
+.small-reset{
+width:60px;
 background:#ff1744;
+font-size:15px;
 }
+
 .stats{
 display:grid;
 grid-template-columns:1fr 1fr;
-gap:12px;
-margin-top:10px;
+gap:14px;
+margin-top:15px;
 }
+
 .card{
 background:rgba(255,255,255,0.05);
 padding:18px;
-border-radius:18px;
+border-radius:20px;
 text-align:center;
 }
+
 .card h2{
 margin-top:10px;
-font-size:28px;
+font-size:30px;
 }
+
+.card small{
+opacity:0.7;
+}
+
 .timeline{
-max-height:260px;
+max-height:300px;
 overflow-y:auto;
 margin-top:15px;
 }
+
 .item{
 display:flex;
 justify-content:space-between;
+align-items:center;
 padding:14px;
 border-bottom:1px solid rgba(255,255,255,0.08);
 }
-.small{
+
+.left{
+display:flex;
+align-items:center;
+gap:10px;
+}
+
+.dot{
+width:12px;
+height:12px;
+border-radius:50%;
+background:#00e676;
+}
+
+.time{
 opacity:0.6;
 font-size:13px;
 }
-.footer{
-text-align:center;
-margin-top:20px;
-opacity:0.5;
-font-size:13px;
+
+.section-title{
+font-size:22px;
+margin-bottom:10px;
 }
+
+.action-row{
+display:flex;
+gap:10px;
+margin-top:15px;
+}
+
+.action-btn{
+flex:1;
+background:#2962ff;
+}
+
 canvas{
 margin-top:15px;
 }
+
+.footer{
+text-align:center;
+opacity:0.5;
+margin-top:20px;
+font-size:13px;
+}
+
 </style>
+
 </head>
+
 <body>
+
 <div class="container">
-<div class="title">
+
+<div class="header">
+
 <h1>🚬 Smoke Tracker Pro</h1>
-<p id="date"></p>
+
+<p id="todayDate"></p>
+
 </div>
+
 <div class="glass">
+
 <div id="count" class="count safe">0</div>
-<div class="buttons">
-<button class="green" onclick="addSmoke(1)">
+
+<div class="button-row">
+
+<button class="main-btn green"
+onclick="addSmoke(1)">
 +1
 </button>
-<button class="orange" onclick="addSmoke(0.5)">
+
+<button class="main-btn orange"
+onclick="addSmoke(0.5)">
 +0.5
 </button>
-<button class="red" onclick="resetToday()">
+
+<button class="small-reset"
+onclick="resetToday()">
 Reset
 </button>
+
 </div>
+
 </div>
+
 <div class="glass">
-<h2>📊 Analytics</h2>
+
+<div class="section-title">
+📊 Analytics
+</div>
+
 <div class="stats">
+
 <div class="card">
-Today
+<small>Today</small>
 <h2 id="todayTotal">0</h2>
 </div>
+
 <div class="card">
-Weekly Avg
+<small>Weekly Avg</small>
 <h2 id="weeklyAvg">0</h2>
 </div>
+
 <div class="card">
-Money Today
+<small>Money Today</small>
 <h2 id="moneyToday">₹0</h2>
 </div>
+
 <div class="card">
-Monthly Total
+<small>Total Spent</small>
+<h2 id="totalSpent">₹0</h2>
+</div>
+
+<div class="card">
+<small>Monthly Total</small>
 <h2 id="monthlyTotal">0</h2>
 </div>
+
+<div class="card">
+<small>Lifetime Count</small>
+<h2 id="lifeTotal">0</h2>
 </div>
+
 </div>
+
+</div>
+
 <div class="glass">
-<h2>📈 Last 7 Days</h2>
+
+<div class="section-title">
+📈 Last 7 Days
+</div>
+
 <canvas id="chart"></canvas>
+
 </div>
+
 <div class="glass">
-<h2>⏱ Timeline</h2>
-<div class="timeline" id="timeline"></div>
+
+<div class="section-title">
+⏱ Timeline
 </div>
+
+<div id="timeline" class="timeline"></div>
+
+</div>
+
+<div class="glass">
+
+<div class="section-title">
+💾 Backup
+</div>
+
+<div class="action-row">
+
+<button class="action-btn"
+onclick="exportData()">
+⬇ Export
+</button>
+
+<button class="action-btn"
+onclick="importData()">
+⬆ Import
+</button>
+
+</div>
+
+<input type="file"
+id="fileInput"
+hidden>
+
+</div>
+
 <div class="footer">
-Smoke Tracker Pro • Local Storage Enabled
+Smoke Tracker Pro • Local Storage Protected
 </div>
+
 </div>
+
 <script>
+
 const PRICE_PER_CIG = 10;
+
+const STORAGE_KEY = "smokeTrackerProDataV2";
+
 const today =
 new Date().toISOString().split("T")[0];
-document.getElementById("date")
+
+document.getElementById("todayDate")
 .innerText =
 new Date().toDateString();
+
 let smokeData =
-JSON.parse(localStorage.getItem("smokeData")) || {};
+JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+
 if(!smokeData[today]){
+
 smokeData[today]={
 total:0,
 entries:[]
 };
+
 saveData();
 }
+
 function saveData(){
+
 localStorage.setItem(
-"smokeData",
+STORAGE_KEY,
 JSON.stringify(smokeData)
 );
 }
+
 function addSmoke(amount){
-smokeData[today].total += amount;
-smokeData[today].entries.unshift({
-amount:amount,
-time:new Date().toLocaleTimeString()
-});
-saveData();
-updateUI();
-}
-function resetToday(){
-if(confirm("Reset today's data?")){
+
+if(!smokeData[today]){
+
 smokeData[today]={
 total:0,
 entries:[]
 };
+}
+
+smokeData[today].total += amount;
+
+smokeData[today].entries.unshift({
+
+amount:amount,
+
+time:new Date().toLocaleTimeString(),
+
+timestamp:Date.now()
+
+});
+
 saveData();
+
+updateUI();
+}
+
+function resetToday(){
+
+const confirmReset =
+confirm(
+"Reset ONLY today's data?"
+);
+
+if(confirmReset){
+
+smokeData[today]={
+total:0,
+entries:[]
+};
+
+saveData();
+
 updateUI();
 }
 }
+
 function updateUI(){
+
 const total =
-smokeData[today].total;
+smokeData[today]?.total || 0;
+
 const countEl =
 document.getElementById("count");
+
 countEl.innerText = total;
+
 countEl.className = "count";
+
 if(total <= 3){
+
 countEl.classList.add("safe");
 }
 else if(total <= 7){
+
 countEl.classList.add("warning");
 }
 else{
+
 countEl.classList.add("danger");
 }
+
 document.getElementById("todayTotal")
 .innerText = total;
+
 document.getElementById("moneyToday")
 .innerText =
 "₹" + (total * PRICE_PER_CIG);
+
 updateStats();
+
 updateTimeline();
+
 updateChart();
 }
+
 function updateStats(){
+
 const dates =
 Object.keys(smokeData);
-let monthly = 0;
+
+let monthlyTotal = 0;
+
+let lifeTotal = 0;
+
 dates.forEach(date=>{
-monthly += smokeData[date].total;
+
+lifeTotal += smokeData[date].total;
+
+monthlyTotal += smokeData[date].total;
 });
-document.getElementById("monthlyTotal")
-.innerText = monthly;
+
 const avg =
-(monthly / dates.length || 0)
+(lifeTotal / dates.length || 0)
 .toFixed(1);
+
 document.getElementById("weeklyAvg")
 .innerText = avg;
+
+document.getElementById("monthlyTotal")
+.innerText = monthlyTotal;
+
+document.getElementById("lifeTotal")
+.innerText = lifeTotal;
+
+document.getElementById("totalSpent")
+.innerText =
+"₹" + (lifeTotal * PRICE_PER_CIG);
 }
+
 function updateTimeline(){
+
 const timeline =
 document.getElementById("timeline");
+
 timeline.innerHTML = "";
-smokeData[today].entries.forEach(entry=>{
-timeline.innerHTML += `
+
+const entries =
+smokeData[today].entries;
+
+if(entries.length === 0){
+
+timeline.innerHTML = `
 <div class="item">
+<div>No entries today</div>
+</div>
+`;
+
+return;
+}
+
+entries.forEach(entry=>{
+
+timeline.innerHTML += `
+
+<div class="item">
+
+<div class="left">
+
+<div class="dot"></div>
+
 <div>
 <strong>+${entry.amount}</strong>
 </div>
-<div class="small">
+
+</div>
+
+<div class="time">
 ${entry.time}
 </div>
+
 </div>
+
 `;
 });
 }
+
 let chart;
+
 function updateChart(){
+
 const labels = [];
 const values = [];
+
 const dates =
 Object.keys(smokeData)
+.sort()
 .slice(-7);
+
 dates.forEach(date=>{
+
 labels.push(date.substring(5));
+
 values.push(smokeData[date].total);
 });
+
 if(chart){
 chart.destroy();
 }
+
 chart = new Chart(
+
 document.getElementById("chart"),
+
 {
 type:"line",
+
 data:{
+
 labels:labels,
+
 datasets:[{
+
 label:"Cigarettes",
+
 data:values,
+
 tension:0.4,
+
 fill:true
+
 }]
 },
+
 options:{
+
+responsive:true,
+
 plugins:{
 legend:{
 labels:{
@@ -314,12 +593,15 @@ color:"white"
 }
 }
 },
+
 scales:{
+
 x:{
 ticks:{
 color:"white"
 }
 },
+
 y:{
 ticks:{
 color:"white"
@@ -330,7 +612,81 @@ color:"white"
 }
 );
 }
+
+function exportData(){
+
+const dataStr =
+JSON.stringify(smokeData,null,2);
+
+const blob =
+new Blob([dataStr],{
+type:"application/json"
+});
+
+const url =
+URL.createObjectURL(blob);
+
+const a =
+document.createElement("a");
+
+a.href = url;
+
+a.download =
+"smoke-tracker-backup.json";
+
+a.click();
+
+URL.revokeObjectURL(url);
+}
+
+function importData(){
+
+document.getElementById("fileInput")
+.click();
+}
+
+document.getElementById("fileInput")
+.addEventListener("change",function(e){
+
+const file =
+e.target.files[0];
+
+if(!file) return;
+
+const reader =
+new FileReader();
+
+reader.onload = function(event){
+
+try{
+
+const imported =
+JSON.parse(event.target.result);
+
+smokeData = imported;
+
+saveData();
+
 updateUI();
+
+alert("Backup restored successfully");
+
+}
+catch{
+
+alert("Invalid backup file");
+
+}
+};
+
+reader.readAsText(file);
+
+});
+
+updateUI();
+
 </script>
+
 </body>
+
 </html>
