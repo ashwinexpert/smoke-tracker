@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Smoke Tracker Pro • Premium</title>
+    <title>Smoke Tracker Pro • Monthly View</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         * {
@@ -45,7 +45,7 @@
         }
 
         .container {
-            max-width: 600px;
+            max-width: 650px;
             margin: 0 auto;
         }
 
@@ -157,74 +157,39 @@
             font-size: 14px;
             padding: 10px 20px;
         }
-        .btn:hover {
-            transform: scale(1.05);
-            filter: brightness(1.05);
-        }
 
-        /* Price selector modal */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.7);
-            backdrop-filter: blur(8px);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-        .modal-content {
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            border-radius: 40px;
-            padding: 28px;
-            width: 90%;
-            max-width: 340px;
-            text-align: center;
-        }
-        .price-options {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
-            margin: 24px 0;
-        }
-        .price-btn {
-            background: rgba(255,255,255,0.1);
-            border: 1px solid var(--glass-border);
-            border-radius: 60px;
-            padding: 14px;
-            font-size: 18px;
-            font-weight: 700;
-            cursor: pointer;
-            color: var(--text);
-            transition: 0.2s;
-        }
-        .price-btn:hover {
-            background: var(--purple);
-            transform: scale(1.05);
-        }
-        .custom-price-input {
+        .month-selector {
             display: flex;
-            gap: 10px;
-            margin-top: 16px;
+            gap: 12px;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
         }
-        .custom-price-input input {
-            flex: 1;
-            padding: 12px;
-            border-radius: 60px;
-            border: 1px solid var(--glass-border);
+        .month-dropdown {
             background: rgba(255,255,255,0.1);
+            border: 1px solid var(--glass-border);
+            border-radius: 60px;
+            padding: 10px 20px;
             color: var(--text);
             font-size: 16px;
-            text-align: center;
+            cursor: pointer;
+            flex: 1;
         }
-        .modal-close {
-            background: var(--red);
+        .month-dropdown option {
+            background: #1e1b4b;
+        }
+        .month-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
             margin-top: 16px;
+        }
+        .month-stat-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 16px;
+            text-align: center;
         }
 
         .stats-grid {
@@ -290,7 +255,7 @@
         }
 
         canvas {
-            max-height: 220px;
+            max-height: 250px;
             margin-top: 10px;
         }
 
@@ -347,32 +312,46 @@
             </div>
         </div>
 
-        <!-- Stats dashboard -->
+        <!-- Monthly View Section -->
         <div class="glass-card">
-            <div style="font-weight: 600; margin-bottom: 16px;">📊 Your Stats</div>
-            <div class="stats-grid">
-                <div class="stat-item"><div class="stat-label">Today</div><div class="stat-value" id="todayTotal">0</div></div>
-                <div class="stat-item"><div class="stat-label">Weekly Avg</div><div class="stat-value" id="weeklyAvg">0</div></div>
-                <div class="stat-item"><div class="stat-label">Money Today</div><div class="stat-value" id="moneyToday">₹0</div></div>
-                <div class="stat-item"><div class="stat-label">Total Spent</div><div class="stat-value" id="totalSpent">₹0</div></div>
-                <div class="stat-item"><div class="stat-label">Monthly</div><div class="stat-value" id="monthlyTotal">0</div></div>
-                <div class="stat-item"><div class="stat-label">Lifetime</div><div class="stat-value" id="lifeTotal">0</div></div>
+            <div class="month-selector">
+                <select id="monthSelector" class="month-dropdown" onchange="changeMonth()"></select>
+                <button class="btn" style="background: var(--blue); padding: 10px 20px;" onclick="showCurrentMonth()">📅 This Month</button>
+            </div>
+            <div class="month-stats">
+                <div class="month-stat-card">
+                    <div class="stat-label">Month Total</div>
+                    <div class="stat-value" id="monthTotalCigs">0</div>
+                </div>
+                <div class="month-stat-card">
+                    <div class="stat-label">Month Spent</div>
+                    <div class="stat-value" id="monthTotalMoney">₹0</div>
+                </div>
+            </div>
+            <div style="margin-top: 16px;">
+                <canvas id="monthlyChart"></canvas>
             </div>
         </div>
 
-        <!-- Chart card -->
+        <!-- Today's Stats -->
         <div class="glass-card">
-            <div style="font-weight: 600; margin-bottom: 12px;">📈 Last 7 Days Trend</div>
-            <canvas id="chart"></canvas>
+            <div style="font-weight: 600; margin-bottom: 16px;">📊 Today's Stats</div>
+            <div class="stats-grid">
+                <div class="stat-item"><div class="stat-label">Today</div><div class="stat-value" id="todayTotal">0</div></div>
+                <div class="stat-item"><div class="stat-label">Money Today</div><div class="stat-value" id="moneyToday">₹0</div></div>
+                <div class="stat-item"><div class="stat-label">Weekly Avg</div><div class="stat-value" id="weeklyAvg">0</div></div>
+                <div class="stat-item"><div class="stat-label">Total Spent</div><div class="stat-value" id="totalSpent">₹0</div></div>
+                <div class="stat-item"><div class="stat-label">Lifetime Cigs</div><div class="stat-value" id="lifeTotal">0</div></div>
+            </div>
         </div>
 
-        <!-- Timeline card -->
+        <!-- Today's Timeline -->
         <div class="glass-card">
             <div style="font-weight: 600; margin-bottom: 12px;">⏱ Today's Log</div>
             <div id="timeline" class="timeline-list"></div>
         </div>
 
-        <!-- Backup & Reset card -->
+        <!-- Backup & Reset -->
         <div class="glass-card">
             <div style="font-weight: 600; margin-bottom: 16px;">💾 Data Management</div>
             <div style="display: flex; gap: 12px; flex-wrap: wrap;">
@@ -385,33 +364,35 @@
             <input type="file" id="fileInput" hidden>
         </div>
 
-        <div class="footer">Smoke Tracker Pro • Tap + for ₹10 cig • Custom for expensive ones</div>
+        <div class="footer">Smoke Tracker Pro • Select any month to see your history</div>
     </div>
 
-    <!-- Price Modal (Only for custom prices) -->
-    <div id="priceModal" class="modal">
-        <div class="modal-content">
+    <!-- Price Modal -->
+    <div id="priceModal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); backdrop-filter:blur(8px); z-index:1000; justify-content:center; align-items:center;">
+        <div class="modal-content" style="background:var(--glass-bg); backdrop-filter:blur(20px); border:1px solid var(--glass-border); border-radius:40px; padding:28px; width:90%; max-width:340px; text-align:center;">
             <h3>💸 Select Cigarette Price</h3>
-            <div class="price-options">
-                <button class="price-btn" onclick="addCustomPrice(1, 15)">₹15</button>
-                <button class="price-btn" onclick="addCustomPrice(1, 20)">₹20</button>
-                <button class="price-btn" onclick="addCustomPrice(1, 25)">₹25</button>
-                <button class="price-btn" onclick="addCustomPrice(1, 30)">₹30</button>
-                <button class="price-btn" onclick="addCustomPrice(1, 50)">₹50</button>
-                <button class="price-btn" onclick="addCustomPrice(1, 100)">₹100</button>
+            <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin:24px 0;">
+                <button class="price-btn" style="background:rgba(255,255,255,0.1); border:1px solid var(--glass-border); border-radius:60px; padding:14px; font-size:18px; font-weight:700; cursor:pointer; color:var(--text);" onclick="addCustomPrice(1,15)">₹15</button>
+                <button class="price-btn" onclick="addCustomPrice(1,20)">₹20</button>
+                <button class="price-btn" onclick="addCustomPrice(1,25)">₹25</button>
+                <button class="price-btn" onclick="addCustomPrice(1,30)">₹30</button>
+                <button class="price-btn" onclick="addCustomPrice(1,50)">₹50</button>
+                <button class="price-btn" onclick="addCustomPrice(1,100)">₹100</button>
             </div>
-            <div class="custom-price-input">
-                <input type="number" id="customPrice" placeholder="Custom amount (₹)" step="1" min="1">
-                <button class="btn btn-primary" style="padding: 12px 20px;" onclick="addCustomPriceFromInput()">Add</button>
+            <div style="display:flex; gap:10px; margin-top:16px;">
+                <input type="number" id="customPrice" placeholder="Custom amount (₹)" step="1" min="1" style="flex:1; padding:12px; border-radius:60px; border:1px solid var(--glass-border); background:rgba(255,255,255,0.1); color:var(--text); font-size:16px; text-align:center;">
+                <button class="btn btn-primary" style="padding:12px 20px;" onclick="addCustomPriceFromInput()">Add</button>
             </div>
-            <button class="btn modal-close" onclick="closeModal()">Cancel</button>
+            <button class="btn modal-close" style="background:var(--red); margin-top:16px;" onclick="closeModal()">Cancel</button>
         </div>
     </div>
 
     <script>
         const DEFAULT_PRICE = 10;
-        const STORAGE_KEY = "smokeTrackerProDataV5";
+        const STORAGE_KEY = "smokeTrackerProDataV6";
         const today = new Date().toISOString().split("T")[0];
+        let currentMonth = today.slice(0,7); // YYYY-MM
+        let monthlyChart = null;
 
         document.getElementById("todayDate").innerText = new Date().toDateString();
 
@@ -425,28 +406,29 @@
 
         function saveData() {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(smokeData));
+            updateMonthSelector();
+            if (currentMonth === today.slice(0,7)) {
+                updateUI();
+            } else {
+                updateMonthlyView();
+            }
         }
 
-        // Quick add with default ₹10 price (NO POPUP)
         function addQuickSmoke(amount) {
             const totalPrice = amount * DEFAULT_PRICE;
             addSmokeEntry(amount, DEFAULT_PRICE, totalPrice);
         }
 
-        // Open modal for custom price
         function showCustomPriceModal() {
             document.getElementById("priceModal").style.display = "flex";
             document.getElementById("customPrice").value = "";
         }
 
-        // Add custom price from preset buttons
         function addCustomPrice(amount, pricePerUnit) {
-            const totalPrice = amount * pricePerUnit;
-            addSmokeEntry(amount, pricePerUnit, totalPrice);
+            addSmokeEntry(amount, pricePerUnit, amount * pricePerUnit);
             closeModal();
         }
 
-        // Add custom price from input field
         function addCustomPriceFromInput() {
             const customPrice = parseFloat(document.getElementById("customPrice").value);
             if (isNaN(customPrice) || customPrice <= 0) {
@@ -457,7 +439,6 @@
             closeModal();
         }
 
-        // Main function to add a smoke entry
         function addSmokeEntry(amount, pricePerUnit, totalMoney) {
             if (!smokeData[today]) {
                 smokeData[today] = { total: 0, entries: [], totalMoney: 0 };
@@ -502,6 +483,82 @@
             document.getElementById("priceModal").style.display = "none";
         }
 
+        function updateMonthSelector() {
+            const months = new Set();
+            Object.keys(smokeData).forEach(date => {
+                months.add(date.slice(0,7));
+            });
+            const sortedMonths = Array.from(months).sort().reverse();
+            const selector = document.getElementById("monthSelector");
+            selector.innerHTML = sortedMonths.map(month => {
+                const [year, monthNum] = month.split('-');
+                const monthName = new Date(year, monthNum-1).toLocaleString('default', { month: 'long' });
+                return `<option value="${month}" ${month === currentMonth ? 'selected' : ''}>${monthName} ${year}</option>`;
+            }).join('');
+            if (sortedMonths.length === 0) {
+                selector.innerHTML = `<option value="${today.slice(0,7)}">${new Date().toLocaleString('default', { month: 'long' })}</option>`;
+            }
+        }
+
+        function changeMonth() {
+            currentMonth = document.getElementById("monthSelector").value;
+            updateMonthlyView();
+        }
+
+        function showCurrentMonth() {
+            currentMonth = today.slice(0,7);
+            document.getElementById("monthSelector").value = currentMonth;
+            updateMonthlyView();
+        }
+
+        function updateMonthlyView() {
+            const datesInMonth = Object.keys(smokeData).filter(date => date.startsWith(currentMonth)).sort();
+            let monthTotal = 0;
+            let monthMoney = 0;
+            const dailyData = {};
+            
+            datesInMonth.forEach(date => {
+                monthTotal += smokeData[date].total || 0;
+                monthMoney += smokeData[date].totalMoney || 0;
+                dailyData[date] = smokeData[date].total || 0;
+            });
+
+            document.getElementById("monthTotalCigs").innerText = monthTotal;
+            document.getElementById("monthTotalMoney").innerText = "₹" + Math.round(monthMoney);
+
+            // Create daily chart for the month
+            const labels = datesInMonth.map(d => d.substring(5));
+            const values = datesInMonth.map(d => smokeData[d].total || 0);
+
+            if (monthlyChart) monthlyChart.destroy();
+            const ctx = document.getElementById("monthlyChart").getContext("2d");
+            monthlyChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Cigarettes per day',
+                        data: values,
+                        backgroundColor: 'rgba(139, 92, 246, 0.6)',
+                        borderColor: '#8b5cf6',
+                        borderWidth: 1,
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: { labels: { color: getComputedStyle(document.body).getPropertyValue('--text').trim() } }
+                    },
+                    scales: {
+                        x: { ticks: { color: getComputedStyle(document.body).getPropertyValue('--text-dim').trim(), maxRotation: 45, minRotation: 45 } },
+                        y: { ticks: { color: getComputedStyle(document.body).getPropertyValue('--text-dim').trim() }, beginAtZero: true, title: { display: true, text: 'Cigarettes', color: getComputedStyle(document.body).getPropertyValue('--text-dim').trim() } }
+                    }
+                }
+            });
+        }
+
         function updateUI() {
             const total = smokeData[today]?.total || 0;
             const totalMoney = smokeData[today]?.totalMoney || 0;
@@ -514,38 +571,40 @@
 
             document.getElementById("todayTotal").innerText = total;
             document.getElementById("moneyToday").innerText = "₹" + Math.round(totalMoney);
-            updateStats();
+            updateLifetimeStats();
             updateTimeline();
-            updateChart();
+            
+            if (currentMonth === today.slice(0,7)) {
+                updateMonthlyView();
+            }
         }
 
-        function updateStats() {
+        function updateLifetimeStats() {
             const dates = Object.keys(smokeData);
             let lifeTotal = 0;
             let lifeMoney = 0;
-            let monthlyTotal = 0;
-            const currentMonth = today.slice(0,7);
             dates.forEach(date => {
                 lifeTotal += smokeData[date].total || 0;
                 lifeMoney += smokeData[date].totalMoney || 0;
-                if (date.startsWith(currentMonth)) monthlyTotal += smokeData[date].total || 0;
             });
-            const weeklyValues = dates.slice(-7).map(d => smokeData[d].total || 0);
-            const weeklyAvg = (weeklyValues.reduce((a,b)=>a+b,0) / (weeklyValues.length || 1)).toFixed(1);
+            const last7Days = dates.slice(-7);
+            let weeklyTotal = 0;
+            last7Days.forEach(d => weeklyTotal += smokeData[d].total || 0);
+            const weeklyAvg = (weeklyTotal / 7).toFixed(1);
+            
             document.getElementById("weeklyAvg").innerText = weeklyAvg;
-            document.getElementById("monthlyTotal").innerText = monthlyTotal;
             document.getElementById("lifeTotal").innerText = lifeTotal;
             document.getElementById("totalSpent").innerText = "₹" + Math.round(lifeMoney);
         }
 
         function updateTimeline() {
             const timeline = document.getElementById("timeline");
-            const entries = smokeData[today].entries;
+            const entries = smokeData[today]?.entries;
             if (!entries || entries.length === 0) {
                 timeline.innerHTML = `<div class="timeline-item"><div class="timeline-badge">✨ No cigarettes logged today</div></div>`;
                 return;
             }
-            timeline.innerHTML = entries.map(entry => `
+            timeline.innerHTML = entries.slice(0,30).map(entry => `
                 <div class="timeline-item">
                     <div class="timeline-badge">
                         <div class="timeline-dot"></div>
@@ -555,49 +614,6 @@
                     <div class="timeline-time">${entry.time}</div>
                 </div>
             `).join('');
-        }
-
-        let chart;
-        function updateChart() {
-            const labels = [];
-            const values = [];
-            const dates = Object.keys(smokeData).sort().slice(-7);
-            dates.forEach(date => {
-                labels.push(date.substring(5));
-                values.push(smokeData[date].total || 0);
-            });
-            if (chart) chart.destroy();
-            const ctx = document.getElementById("chart").getContext("2d");
-            chart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Cigarettes',
-                        data: values,
-                        borderColor: '#8b5cf6',
-                        backgroundColor: 'rgba(139, 92, 246, 0.1)',
-                        borderWidth: 3,
-                        tension: 0.3,
-                        fill: true,
-                        pointBackgroundColor: '#8b5cf6',
-                        pointBorderColor: '#fff',
-                        pointRadius: 4,
-                        pointHoverRadius: 6
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    plugins: {
-                        legend: { labels: { color: getComputedStyle(document.body).getPropertyValue('--text').trim() } }
-                    },
-                    scales: {
-                        x: { ticks: { color: getComputedStyle(document.body).getPropertyValue('--text-dim').trim() } },
-                        y: { ticks: { color: getComputedStyle(document.body).getPropertyValue('--text-dim').trim() }, beginAtZero: true }
-                    }
-                }
-            });
         }
 
         function exportData() {
@@ -638,15 +654,15 @@
 
         function toggleTheme() {
             document.body.classList.toggle('light');
-            if (chart) updateChart();
+            if (monthlyChart) updateMonthlyView();
         }
 
-        // Close modal on outside click
         window.onclick = function(event) {
             const modal = document.getElementById("priceModal");
             if (event.target === modal) closeModal();
         }
 
+        updateMonthSelector();
         updateUI();
     </script>
 </body>
