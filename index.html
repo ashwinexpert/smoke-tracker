@@ -6,6 +6,7 @@
     <title>Smoke Tracker Pro • Premium</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+        /* ALL YOUR EXISTING STYLES REMAIN THE SAME */
         * {
             margin: 0;
             padding: 0;
@@ -390,11 +391,26 @@
     <script>
         const DEFAULT_PRICE = 10;
         const STORAGE_KEY = "smokeTrackerProDataV6";
-        const today = new Date().toISOString().split("T")[0];
+        
+        // ========== FIXED: Get local IST date (not UTC) ==========
+        function getLocalDate() {
+            const now = new Date();
+            const offset = 5.5 * 60 * 60 * 1000; // IST is UTC+5:30
+            const istDate = new Date(now.getTime() + offset);
+            return istDate.toISOString().split("T")[0];
+        }
+        
+        const today = getLocalDate();
         let currentMonth = today.slice(0,7);
         let monthlyChart = null;
 
-        document.getElementById("todayDate").innerText = new Date().toDateString();
+        document.getElementById("todayDate").innerText = new Date().toLocaleDateString('en-IN', { 
+            weekday: 'short', 
+            year: 'numeric', 
+            month: 'short', 
+            day: 'numeric',
+            timeZone: 'Asia/Kolkata'
+        });
 
         let smokeData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
         if (!smokeData[today]) {
@@ -410,7 +426,6 @@
             const addValue = urlParams.get('add');
             
             if (addValue === '1') {
-                // Remove the parameter from URL without refreshing
                 window.history.replaceState({}, document.title, window.location.pathname);
                 addQuickSmoke(1);
                 return true;
@@ -468,7 +483,7 @@
                 amount: amount,
                 price: pricePerUnit,
                 totalPrice: totalMoney,
-                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' }),
                 timestamp: Date.now()
             });
             saveData();
@@ -511,11 +526,11 @@
             const selector = document.getElementById("monthSelector");
             selector.innerHTML = sortedMonths.map(month => {
                 const [year, monthNum] = month.split('-');
-                const monthName = new Date(year, monthNum-1).toLocaleString('default', { month: 'long' });
+                const monthName = new Date(year, monthNum-1).toLocaleString('en-IN', { month: 'long' });
                 return `<option value="${month}" ${month === currentMonth ? 'selected' : ''}>${monthName} ${year}</option>`;
             }).join('');
             if (sortedMonths.length === 0) {
-                selector.innerHTML = `<option value="${today.slice(0,7)}">${new Date().toLocaleString('default', { month: 'long' })}</option>`;
+                selector.innerHTML = `<option value="${today.slice(0,7)}">${new Date().toLocaleString('en-IN', { month: 'long' })}</option>`;
             }
         }
 
@@ -681,7 +696,7 @@
         // Run Siri check AFTER everything is loaded
         updateMonthSelector();
         updateUI();
-        checkSiriCommand();  // This listens for ?add=1 or ?add=0.5
+        checkSiriCommand();
     </script>
 </body>
 </html>
